@@ -49,7 +49,7 @@ typedef struct blog_memory_page {
 // INFO : Code Implementation
 //-----------------------------------
 
-void* blog_request_memory_page(size_t capacity)
+BlogMemoryPage* blog_request_memory_page(size_t capacity)
 {
 #if defined(_WIN32) || defined(_WIN64)
     return NULL;
@@ -59,7 +59,7 @@ void* blog_request_memory_page(size_t capacity)
     #error "Unsupported OS"
 #endif
 }
-void blog_free_memory_page(void* ptr)
+void blog_free_memory_page(BlogMemoryPage* ptr)
 {
 #if defined(_WIN32) || defined(_WIN64)
     // TODO : Implementation
