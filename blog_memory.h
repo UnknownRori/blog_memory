@@ -59,6 +59,16 @@ void* blog_request_memory_page(size_t capacity)
     #error "Unsupported OS"
 #endif
 }
+void blog_free_memory_page(void* ptr)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    // TODO : Implementation
+#elif defined(__linux__)
+    // TODO : Implementation
+#else
+    #error "Unsupported OS"
+#endif
+}
 
 #endif
 
