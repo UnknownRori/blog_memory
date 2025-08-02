@@ -65,6 +65,10 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
         0
     );
 
+    page->capacity = capacity;
+    page->child = NULL;
+    page->next = NULL;
+
     return page;
 #else
     #error "Unsupported OS"
