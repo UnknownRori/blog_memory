@@ -10,7 +10,7 @@ void blog_free(void* ptr);
 #ifdef BLOG_MEMORY_IMPLEMENTATION
 
 //-----------------------------------
-// INFO : Import header
+// INFO : Import header & macro & constants
 //-----------------------------------
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -22,6 +22,10 @@ void blog_free(void* ptr);
 #else
     #error "Unsupported OS"
 #endif
+
+#define ALIGN(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
+
+#define BLOCK_USE               0b10000000
 
 //-----------------------------------
 // INFO : Memory header
@@ -45,10 +49,10 @@ typedef struct blog_memory_page {
 // INFO : Code Implementation
 //-----------------------------------
 
-void* blog_request_memory_page()
+void* blog_request_memory_page(size_t capacity)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    // TODO : Implementation
+    return NULL;
 #elif defined(__linux__)
     return NULL;
 #else
