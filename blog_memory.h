@@ -65,6 +65,8 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
         0
     );
 
+    if (page == NULL) return NULL;
+
     page->capacity = capacity;
     page->child = NULL;
     page->next = NULL;
