@@ -102,7 +102,6 @@ void blog_free_memory_page(BlogMemoryPage* ptr)
 #endif
 }
 
-
 void* blog_malloc(size_t size)
 {
     size = ALIGN(size, 8);
@@ -111,11 +110,39 @@ void* blog_malloc(size_t size)
         if (__ALLOCATOR == NULL) return NULL;
     }
 
-    BlogMemoryChunk *current_chunk = (BlogMemoryChunk*)(__ALLOCATOR + 1);
+    size_t allocated = 0;
+    BlogMemoryChunk* chunk = __ALLOCATOR->child;
+    BlogMemoryChunk* last  = NULL;
+    while (chunk) {
+        allocated += chunk->capacity;
+        if (!(chunk->flags & BLOCK_USE) && chunk->capacity >= size) {
+            chunk->flags |= BLOCK_USE;
+            return chunk + 1;
+        }
+
+        last = chunk;
+        chunk = chunk->next;
+    }
+
+    if (allocated + sizeof(BlogMemoryChunk) + size >= __ALLOCATOR->capacity) {
+        return NULL;
+    }
+
+    if (last == NULL) {
+        BlogMemoryChunk *current_chunk = (BlogMemoryChunk*)(__ALLOCATOR + 1);
+        current_chunk->capacity = size;
+        current_chunk->flags = BLOCK_USE;
+        current_chunk->next = NULL;
+        __ALLOCATOR->child = current_chunk;
+
+        return current_chunk + 1;
+    }
+
+    BlogMemoryChunk *current_chunk = (last + 1);
     current_chunk->capacity = size;
     current_chunk->flags = BLOCK_USE;
-    current_chunk->child = NULL;
-    __ALLOCATOR->child = current_chunk;
+    current_chunk->next = NULL;
+    last->next = current_chunk;
 
     return current_chunk + 1;
 }
