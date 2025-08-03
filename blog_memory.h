@@ -114,7 +114,7 @@ void* blog_malloc(size_t size)
     BlogMemoryChunk* chunk = __ALLOCATOR->child;
     BlogMemoryChunk* last  = NULL;
     while (chunk) {
-        allocated += chunk->capacity;
+        allocated += chunk->capacity + sizeof(BlogMemoryChunk);
         if (!(chunk->flags & BLOCK_USE) && chunk->capacity >= size) {
             chunk->flags |= BLOCK_USE;
             return chunk + 1;
