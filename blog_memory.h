@@ -2,6 +2,7 @@
 #define     BLOG_MEMORY_H
 
 #include <stddef.h>
+#define BLOG_MEMORY_IMPLEMENTATION
 
 
 void* blog_malloc(size_t size);
@@ -14,6 +15,8 @@ void blog_free(void* ptr);
 //-----------------------------------
 
 #if defined(_WIN32) || defined(_WIN64)
+
+#include <Windows.h>
 
 #elif defined(__linux__)
 
@@ -52,7 +55,16 @@ typedef struct blog_memory_page {
 BlogMemoryPage* blog_request_memory_page(size_t capacity)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    return NULL;
+    capacity = ALIGN(capacity, 4096);
+    BlogMemoryPage* page = (BlogMemoryPage*)VirtualAlloc(NULL, capacity, MEM_COMMIT, PAGE_READWRITE);
+
+    if (page == NULL) return NULL;
+    
+    page->capacity = capacity;
+    page->child = NULL;
+    page->next = NULL;
+
+    return page;
 #elif defined(__linux__)
     return NULL;
 #else
@@ -62,7 +74,7 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
 void blog_free_memory_page(BlogMemoryPage* ptr)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    // TODO : Implementation
+    VirtualFree(ptr, ptr->capacity, MEM_RELEASE);
 #elif defined(__linux__)
     // TODO : Implementation
 #else
