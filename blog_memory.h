@@ -38,7 +38,7 @@ typedef struct blog_memory_chunk {
     size_t  capacity;
     char    flags;
 
-    struct blog_memory_chunk* child;
+    struct blog_memory_chunk* next;
 } BlogMemoryChunk;
 
 typedef struct blog_memory_page {
