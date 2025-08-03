@@ -66,17 +66,35 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
 
     return page;
 #elif defined(__linux__)
-    return NULL;
+    capacity = ALIGN(capacity, 4096);
+
+    BlogMemoryPage* page = (BlogMemoryPage*)mmap(
+        NULL, 
+        capacity, 
+        PROT_READ | PROT_WRITE, 
+        MAP_ANONYMOUS | MAP_PRIVATE, 
+        -1, 
+        0
+    );
+
+    if (page == NULL) return NULL;
+
+    page->capacity = capacity;
+    page->child = NULL;
+    page->next = NULL;
+
+    return page;
 #else
     #error "Unsupported OS"
 #endif
 }
+
 void blog_free_memory_page(BlogMemoryPage* ptr)
 {
 #if defined(_WIN32) || defined(_WIN64)
     VirtualFree(ptr, ptr->capacity, MEM_RELEASE);
 #elif defined(__linux__)
-    // TODO : Implementation
+    munmap(ptr, ptr->capacity);
 #else
     #error "Unsupported OS"
 #endif
