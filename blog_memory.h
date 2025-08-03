@@ -48,6 +48,8 @@ typedef struct blog_memory_page {
     BlogMemoryChunk*         child;
 } BlogMemoryPage;
 
+BlogMemoryPage *__ALLOCATOR = NULL;
+
 //-----------------------------------
 // INFO : Code Implementation
 //-----------------------------------
@@ -100,6 +102,30 @@ void blog_free_memory_page(BlogMemoryPage* ptr)
 #endif
 }
 
-#endif
+
+void* blog_malloc(size_t size)
+{
+    size = ALIGN(size, 8);
+    if (__ALLOCATOR == NULL) {
+        __ALLOCATOR = blog_request_memory_page(size);
+        if (__ALLOCATOR == NULL) return NULL;
+    }
+
+    BlogMemoryChunk *current_chunk = (BlogMemoryChunk*)(__ALLOCATOR + 1);
+    current_chunk->capacity = size;
+    current_chunk->flags = BLOCK_USE;
+    current_chunk->child = NULL;
+    __ALLOCATOR->child = current_chunk;
+
+    return current_chunk + 1;
+}
+
+void blog_free(void* ptr)
+{
+    BlogMemoryChunk* current = ((BlogMemoryChunk*)ptr) - 1;
+    current->flags = current->flags & (~BLOCK_USE);
+}
+
+#endif      // BLOG_MEMORY_IMPLEMENTATION
 
 #endif      // BLOG_MEMORY_H
