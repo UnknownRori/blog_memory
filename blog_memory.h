@@ -137,7 +137,8 @@ static BlogMemoryChunk* __blog_allocate_chunk_on_page(size_t capacity, BlogMemor
     }
 
 
-    BlogMemoryChunk *current_chunk = (last + 1);
+
+    BlogMemoryChunk *current_chunk = (BlogMemoryChunk*)((char*)(last + 1) + last->capacity);
     current_chunk->capacity = capacity;
     current_chunk->flags = BLOCK_USE;
     current_chunk->next = NULL;
