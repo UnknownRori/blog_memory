@@ -52,23 +52,24 @@ BlogMemoryPage *__ALLOCATOR = NULL;
 BlogMemoryPage* blog_request_memory_page(size_t capacity)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    capacity = ALIGN(capacity, 4096);
-    BlogMemoryPage* page = (BlogMemoryPage*)VirtualAlloc(NULL, capacity + sizeof(BlogMemoryPage), MEM_COMMIT, PAGE_READWRITE);
+    capacity = ALIGN(capacity + sizeof(BlogMemoryPage), 4096);
+    
+    BlogMemoryPage* page = (BlogMemoryPage*)VirtualAlloc(NULL, capacity, MEM_COMMIT, PAGE_READWRITE);
 
     if (page == NULL) return NULL;
     
-    page->capacity = capacity;
+    page->capacity = capacity - sizeof(BlogMemoryPage);
     page->child = NULL;
     page->next = NULL;
 
     return page;
 #elif defined(__linux__)
     capacity = ALIGN(capacity, 4096);
-
+    size_t request_size = ALIGN(capacity + sizeof(BlogMemoryPage), 4096);
 
     BlogMemoryPage* page = (BlogMemoryPage*)mmap(
         NULL, 
-        capacity  + sizeof(BlogMemoryPage),
+        request_size, 
         PROT_READ | PROT_WRITE, 
         MAP_ANONYMOUS | MAP_PRIVATE, 
         -1, 
@@ -77,7 +78,7 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
 
     if (page == MAP_FAILED) return NULL;
 
-    page->capacity = capacity;
+    page->capacity = capacity - sizeof(BlogMemoryPage);
     page->child = NULL;
     page->next = NULL;
 
