@@ -2,7 +2,6 @@
 #define     BLOG_MEMORY_H
 
 #include <stddef.h>
-#define BLOG_MEMORY_IMPLEMENTATION
 
 
 void* blog_malloc(size_t size);
