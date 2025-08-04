@@ -5,7 +5,7 @@
 
 int main()
 {
-    char *ptr = (char*)blog_malloc(4);
+    char *ptr = (char*)blog_malloc(4096);
     if (ptr == NULL) {
         printf("Memory allocation fail\n");
         return -1;
@@ -18,7 +18,7 @@ int main()
     ptr[3] = '\0';
     printf("%s\n", ptr);
 
-    char *ptr2 = (char*)blog_malloc(4);
+    char *ptr2 = (char*)blog_malloc(1024);
     if (ptr2 == NULL) {
         printf("Memory allocation fail\n");
         return -1;
