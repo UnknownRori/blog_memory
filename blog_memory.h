@@ -14,13 +14,9 @@ void blog_free(void* ptr);
 //-----------------------------------
 
 #if defined(_WIN32) || defined(_WIN64)
-
-#include <Windows.h>
-
+    #include <Windows.h>
 #elif defined(__linux__)
-
-#include <sys/mman.h>
-
+    #include <sys/mman.h>
 #else
     #error "Unsupported OS"
 #endif
@@ -94,7 +90,7 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
 void blog_free_memory_page(BlogMemoryPage* ptr)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    VirtualFree(ptr, ptr->capacity + sizeof(BlogMemoryPage), MEM_RELEASE);
+    VirtualFree(ptr, 0, MEM_RELEASE);
 #elif defined(__linux__)
     munmap(ptr, ptr->capacity + sizeof(BlogMemoryPage));
 #else
@@ -104,9 +100,8 @@ void blog_free_memory_page(BlogMemoryPage* ptr)
 
 static BlogMemoryPage* __blog_init_allocator(size_t capacity)
 {
-    BlogMemoryPage* new_page = blog_request_memory_page(capacity);
-    if (new_page == NULL) return NULL;
-    __ALLOCATOR = new_page;
+	if (__ALLOCATOR != NULL) return __ALLOCATOR;
+    __ALLOCATOR = blog_request_memory_page(capacity);
     return __ALLOCATOR;
 }
 
