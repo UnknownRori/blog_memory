@@ -56,8 +56,8 @@ BlogMemoryPage *__ALLOCATOR = NULL;
 BlogMemoryPage* blog_request_memory_page(size_t capacity)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    capacity = ALIGN(capacity + sizeof(BlogMemoryPage), 4096);
-    BlogMemoryPage* page = (BlogMemoryPage*)VirtualAlloc(NULL, capacity, MEM_COMMIT, PAGE_READWRITE);
+    capacity = ALIGN(capacity, 4096);
+    BlogMemoryPage* page = (BlogMemoryPage*)VirtualAlloc(NULL, capacity + sizeof(BlogMemoryPage), MEM_COMMIT, PAGE_READWRITE);
 
     if (page == NULL) return NULL;
     
@@ -67,12 +67,12 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
 
     return page;
 #elif defined(__linux__)
-    capacity = ALIGN(capacity + sizeof(BlogMemoryPage), 4096);
+    capacity = ALIGN(capacity, 4096);
 
 
     BlogMemoryPage* page = (BlogMemoryPage*)mmap(
         NULL, 
-        capacity,
+        capacity  + sizeof(BlogMemoryPage),
         PROT_READ | PROT_WRITE, 
         MAP_ANONYMOUS | MAP_PRIVATE, 
         -1, 
@@ -94,9 +94,9 @@ BlogMemoryPage* blog_request_memory_page(size_t capacity)
 void blog_free_memory_page(BlogMemoryPage* ptr)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    VirtualFree(ptr, ptr->capacity, MEM_RELEASE);
+    VirtualFree(ptr, ptr->capacity + sizeof(BlogMemoryPage), MEM_RELEASE);
 #elif defined(__linux__)
-    munmap(ptr, ptr->capacity);
+    munmap(ptr, ptr->capacity + sizeof(BlogMemoryPage));
 #else
     #error "Unsupported OS"
 #endif
@@ -116,7 +116,7 @@ static BlogMemoryChunk* __blog_allocate_chunk_on_page(size_t capacity, BlogMemor
     BlogMemoryChunk* chunk = page->child;
     BlogMemoryChunk* last  = NULL;
     while (chunk) {
-        allocated += chunk->capacity;
+        allocated += chunk->capacity + sizeof(BlogMemoryChunk);
         if (!(chunk->flags & BLOCK_USE) && chunk->capacity >= capacity) {
             chunk->flags |= BLOCK_USE;
             return chunk + 1;
@@ -126,7 +126,7 @@ static BlogMemoryChunk* __blog_allocate_chunk_on_page(size_t capacity, BlogMemor
         chunk = chunk->next;
     }
 
-    if (allocated + capacity >= page->capacity) {
+    if (allocated + sizeof(BlogMemoryChunk) + capacity >= page->capacity) {
         return NULL;
     }
 
@@ -153,7 +153,7 @@ static BlogMemoryChunk* __blog_allocate_chunk_on_page(size_t capacity, BlogMemor
 
 void* blog_malloc(size_t size)
 {
-    size = ALIGN(size + sizeof(BlogMemoryChunk), 8);
+    size = ALIGN(size, 8);
     if (__blog_init_allocator(size) == NULL) return NULL;
 
     BlogMemoryChunk* ptr = __blog_allocate_chunk_on_page(size, __ALLOCATOR);
